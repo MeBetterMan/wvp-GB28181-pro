@@ -77,9 +77,24 @@ public class SendRtpItem {
     private String CallId;
 
     /**
-     * 是否是play， false是playback
+     * 发送时，rtp的pt（uint8_t）,不传时默认为96
      */
-    private boolean isPlay;
+    private int pt = 96;
+
+    /**
+     * 发送时，rtp的负载类型。为true时，负载为ps；为false时，为es；
+     */
+    private boolean usePs = true;
+
+    /**
+     * 当usePs 为false时，有效。为1时，发送音频；为0时，发送视频；不传时默认为0
+     */
+    private boolean onlyAudio = false;
+
+    /**
+     * 播放类型
+     */
+    private InviteStreamType playType;
 
     private byte[] transaction;
 
@@ -197,12 +212,12 @@ public class SendRtpItem {
         CallId = callId;
     }
 
-    public boolean isPlay() {
-        return isPlay;
+    public InviteStreamType getPlayType() {
+        return playType;
     }
 
-    public void setPlay(boolean play) {
-        isPlay = play;
+    public void setPlayType(InviteStreamType playType) {
+        this.playType = playType;
     }
 
     public byte[] getTransaction() {
@@ -219,5 +234,29 @@ public class SendRtpItem {
 
     public void setDialog(byte[] dialog) {
         this.dialog = dialog;
+    }
+
+    public int getPt() {
+        return pt;
+    }
+
+    public void setPt(int pt) {
+        this.pt = pt;
+    }
+
+    public boolean isUsePs() {
+        return usePs;
+    }
+
+    public void setUsePs(boolean usePs) {
+        this.usePs = usePs;
+    }
+
+    public boolean isOnlyAudio() {
+        return onlyAudio;
+    }
+
+    public void setOnlyAudio(boolean onlyAudio) {
+        this.onlyAudio = onlyAudio;
     }
 }

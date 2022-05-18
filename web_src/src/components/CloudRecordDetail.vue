@@ -16,7 +16,7 @@
                   {{ item.substring(0,17)}}
                 </el-tag>
 <!--                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/${mediaServerId}/record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" download />-->
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
               </li>
             </ul>
           </div>
@@ -104,7 +104,7 @@
 
 <script>
   // TODO 根据查询的时间列表设置滑轨的最大值与最小值，
-	import uiHeader from './UiHeader.vue'
+	import uiHeader from '../layout/UiHeader.vue'
 	import player from './dialog/easyPlayer.vue'
   import moment  from 'moment'
 	export default {
@@ -265,7 +265,7 @@
           this.videoUrl = "";
         }else {
 			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.basePath}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 

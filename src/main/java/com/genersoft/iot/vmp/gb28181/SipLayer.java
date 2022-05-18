@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-@Component
+@Configuration
 public class SipLayer{
 
 	private final static Logger logger = LoggerFactory.getLogger(SipLayer.class);
@@ -35,7 +36,7 @@ public class SipLayer{
 
 
 	@Bean("sipFactory")
-	private SipFactory createSipFactory() {
+	SipFactory createSipFactory() {
 		sipFactory = SipFactory.getInstance();
 		sipFactory.setPathName("gov.nist");
 		return sipFactory;
@@ -43,11 +44,19 @@ public class SipLayer{
 	
 	@Bean("sipStack")
 	@DependsOn({"sipFactory"})
-	private SipStack createSipStack() throws PeerUnavailableException {
+	SipStack createSipStack() throws PeerUnavailableException {
 		Properties properties = new Properties();
 		properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
 		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
-		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
+		/**
+		 * 完整配置参考 gov.nist.javax.sip.SipStackImpl，需要下载源码
+		 * gov/nist/javax/sip/SipStackImpl.class
+		 */
+		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+		properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true"); // 接收所有notify请求，即使没有订阅
+		properties.setProperty("gov.nist.javax.sip.DELIVER_TERMINATED_EVENT_FOR_NULL_DIALOG", "true"); // 为_NULL _对话框传递_终止的_事件
+		properties.setProperty("gov.nist.javax.sip.RELEASE_REFERENCES_STRATEGY", "Normal"); // 会话清理策略
+		properties.setProperty("gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT", "10");
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
 		 * 0; public static final int TRACE_MESSAGES = 16; public static final int
@@ -57,12 +66,13 @@ public class SipLayer{
 		properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "sip_server_log");
 		properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "sip_debug_log");
 		sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
+
 		return sipStack;
 	}
 
 	@Bean(name = "tcpSipProvider")
 	@DependsOn("sipStack")
-	private SipProviderImpl startTcpListener() {
+	SipProviderImpl startTcpListener() {
 		ListeningPoint tcpListeningPoint = null;
 		SipProviderImpl tcpSipProvider  = null;
 		try {
@@ -70,11 +80,12 @@ public class SipLayer{
 			tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
-			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "}");
+//			tcpSipProvider.setAutomaticDialogSupportEnabled(false);
+			logger.info("[Sip Server] TCP 启动成功 {}:{}", sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
-			logger.error("无法使用 [ {}:{} ]作为SIP[ TCP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+			logger.error("[Sip Server]  无法使用 [ {}:{} ]作为SIP[ TCP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
 					, sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TooManyListenersException e) {
 			e.printStackTrace();
@@ -86,24 +97,25 @@ public class SipLayer{
 	
 	@Bean(name = "udpSipProvider")
 	@DependsOn("sipStack")
-	private SipProviderImpl startUdpListener() {
+	SipProviderImpl startUdpListener() {
 		ListeningPoint udpListeningPoint = null;
 		SipProviderImpl udpSipProvider = null;
 		try {
 			udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getPort(), "UDP");
 			udpSipProvider = (SipProviderImpl)sipStack.createSipProvider(udpListeningPoint);
 			udpSipProvider.addSipListener(sipProcessorObserver);
+//			udpSipProvider.setAutomaticDialogSupportEnabled(false);
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
-			logger.error("无法使用 [ {}:{} ]作为SIP[ UDP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+			logger.error("[Sip Server]  无法使用 [ {}:{} ]作为SIP[ UDP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
 					, sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TooManyListenersException e) {
 			e.printStackTrace();
 		} catch (ObjectInUseException e) {
 			e.printStackTrace();
 		}
-		logger.info("Sip Server UDP 启动成功 port [" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "]");
+		logger.info("[Sip Server] UDP 启动成功 {}:{}", sipConfig.getMonitorIp(), sipConfig.getPort());
 		return udpSipProvider;
 	}
 

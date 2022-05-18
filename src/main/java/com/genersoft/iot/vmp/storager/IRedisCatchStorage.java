@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 
@@ -47,17 +48,15 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryPlayByStreamId(String steamId);
 
-    StreamInfo queryPlaybackByStreamId(String steamId);
-
     StreamInfo queryPlayByDevice(String deviceId, String channelId);
 
     Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
 
-    boolean startPlayback(StreamInfo stream);
+    boolean startPlayback(StreamInfo stream, String callId);
 
-    boolean stopPlayback(StreamInfo streamInfo);
+    boolean stopPlayback(String deviceId, String channelId, String stream, String callId);
 
-    StreamInfo queryPlaybackByDevice(String deviceId, String code);
+    StreamInfo queryPlayback(String deviceId, String channelID, String stream, String callId);
 
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
@@ -113,23 +112,6 @@ public interface IRedisCatchStorage {
     void clearCatchByDeviceId(String deviceId);
 
     /**
-     * 获取mediaServer节点
-     * @param mediaServerId
-     * @return
-     */
-//    MediaServerItem getMediaInfo(String mediaServerId);
-
-    /**
-     * 设置所有设备离线
-     */
-    void outlineForAll();
-
-    /**
-     * 获取所有在线的
-     */
-    List<String> getOnlineForAll();
-
-    /**
      * 在redis添加wvp的信息
      */
     void updateWVPInfo(JSONObject jsonObject, int time);
@@ -139,6 +121,12 @@ public interface IRedisCatchStorage {
      * @param jsonObject 消息内容
      */
     void sendStreamChangeMsg(String type, JSONObject jsonObject);
+
+    /**
+     * 发送报警消息
+     * @param msg 消息内容
+     */
+    void sendAlarmMsg(AlarmChannelMessage msg);
 
     /**
      * 添加流信息到redis
@@ -167,9 +155,11 @@ public interface IRedisCatchStorage {
      * 开始下载录像时存入
      * @param streamInfo
      */
-    boolean startDownload(StreamInfo streamInfo);
+    boolean startDownload(StreamInfo streamInfo, String callId);
 
-    StreamInfo queryDownloadByStreamId(String streamId);
+    StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId);
+
+    boolean stopDownload(String deviceId, String channelId, String stream, String callId);
 
     /**
      * 查找第三方系统留下的国标预设值
@@ -204,22 +194,23 @@ public interface IRedisCatchStorage {
 
     void resetAllSN();
 
-    void updateSubscribe(String key, SubscribeInfo subscribeInfo);
-
-    SubscribeInfo getSubscribe(String key);
-
-    void delSubscribe(String key);
-
     MediaItem getStreamInfo(String app, String streamId, String mediaServerId);
-
-    List<SubscribeInfo> getAllSubscribe();
-
-    List<String> getAllSubscribePlatform();
 
     void addCpuInfo(double cpuInfo);
 
     void addMemInfo(double memInfo);
 
     void addNetInfo(Map<String, String> networkInterfaces);
+
+    void sendMobilePositionMsg(JSONObject jsonObject);
+
+    void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
+
+    /**
+     * 判断设备状态
+     * @param deviceId 设备ID
+     * @return
+     */
+    public boolean deviceIsOnline(String deviceId);
 
 }

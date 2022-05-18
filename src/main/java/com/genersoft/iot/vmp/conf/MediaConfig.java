@@ -1,12 +1,11 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Configuration("mediaConfig")
 public class MediaConfig{
@@ -60,8 +59,8 @@ public class MediaConfig{
     @Value("${media.secret}")
     private String secret;
 
-    @Value("${media.stream-none-reader-delay-ms:18000}")
-    private int streamNoneReaderDelayMS = 18000;
+    @Value("${media.stream-none-reader-delay-ms:10000}")
+    private int streamNoneReaderDelayMS = 10000;
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
@@ -206,9 +205,8 @@ public class MediaConfig{
         mediaServerItem.setRecordAssistPort(recordAssistPort);
         mediaServerItem.setHookAliveInterval(120);
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        mediaServerItem.setCreateTime(format.format(System.currentTimeMillis()));
-        mediaServerItem.setUpdateTime(format.format(System.currentTimeMillis()));
+        mediaServerItem.setCreateTime(DateUtil.getNow());
+        mediaServerItem.setUpdateTime(DateUtil.getNow());
 
         return mediaServerItem;
     }
