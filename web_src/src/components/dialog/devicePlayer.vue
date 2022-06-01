@@ -391,6 +391,7 @@ export default {
             console.log(this.player[tab.name][0])
             this.activePlayer = tab.name;
             this.videoUrl = this.streamInfo[this.player[tab.name][0]]
+
             console.log(this.videoUrl)
         },
         openDialog: function (tab, deviceId, channelId, param) {

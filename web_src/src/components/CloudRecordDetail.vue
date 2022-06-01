@@ -336,7 +336,9 @@
           url:`/record_proxy/${that.mediaServerId}/api/record/date/list`,
           params: {
             app: that.recordFile.app,
-            stream: that.recordFile.stream
+            stream: that.recordFile.stream,
+            year: 2022,
+            month: 5
           }
         }).then(function (res) {
           if (res.data.code === 0) {
