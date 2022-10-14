@@ -19,11 +19,11 @@ public interface DeviceChannelMapper {
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
             "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
-            "longitudeWgs84, latitudeWgs84, createTime, updateTime, businessGroupId) " +
+            "longitudeWgs84, latitudeWgs84, hasAudio, createTime, updateTime, businessGroupId, gpsTime) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
             "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, ${longitudeGcj02}, " +
-            "${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84},'${createTime}', '${updateTime}', '${businessGroupId}')")
+            "${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84}, ${hasAudio}, '${createTime}', '${updateTime}', '${businessGroupId}', '${gpsTime}')")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
@@ -58,6 +58,7 @@ public interface DeviceChannelMapper {
             "<if test='longitudeWgs84 != null'>, longitudeWgs84=${longitudeWgs84}</if>" +
             "<if test='latitudeWgs84 != null'>, latitudeWgs84=${latitudeWgs84}</if>" +
             "<if test='businessGroupId != null'>, businessGroupId=#{businessGroupId}</if>" +
+            "<if test='gpsTime != null'>, gpsTime=#{gpsTime}</if>" +
             "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
             " </script>"})
     int update(DeviceChannel channel);
@@ -139,15 +140,15 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void offline(String deviceId,  String channelId);
 
-    @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
-    void online(String deviceId,  String channelId);
+    @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId}"})
+    void offlineByDeviceId(String deviceId);
 
     @Insert("<script> " +
             "insert into device_channel " +
             "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
             "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
             "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
-            "  longitudeWgs84, latitudeWgs84, createTime, updateTime, businessGroupId) " +
+            "  longitudeWgs84, latitudeWgs84, hasAudio, createTime, updateTime, businessGroupId, gpsTime) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "('${item.channelId}', '${item.deviceId}', '${item.name}', '${item.manufacture}', '${item.model}', " +
@@ -156,8 +157,8 @@ public interface DeviceChannelMapper {
             "'${item.certNum}', ${item.certifiable}, ${item.errCode}, '${item.secrecy}', " +
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
             "'${item.streamId}', ${item.longitude}, ${item.latitude},${item.longitudeGcj02}, " +
-            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}', " +
-            "'${item.businessGroupId}') " +
+            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84}, ${item.hasAudio},'${item.createTime}', '${item.updateTime}', " +
+            "'${item.businessGroupId}', '${item.gpsTime}') " +
             "</foreach> " +
             "ON DUPLICATE KEY UPDATE " +
             "updateTime=VALUES(updateTime), " +
@@ -189,9 +190,14 @@ public interface DeviceChannelMapper {
             "latitudeGcj02=VALUES(latitudeGcj02), " +
             "longitudeWgs84=VALUES(longitudeWgs84), " +
             "latitudeWgs84=VALUES(latitudeWgs84), " +
-            "businessGroupId=VALUES(businessGroupId) " +
+            "hasAudio=VALUES(hasAudio), " +
+            "businessGroupId=VALUES(businessGroupId), " +
+            "gpsTime=VALUES(gpsTime)" +
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
+
+    @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void online(String deviceId,  String channelId);
 
     @Update({"<script>" +
             "<foreach collection='updateChannels' item='item' separator=';'>" +
@@ -228,6 +234,7 @@ public interface DeviceChannelMapper {
             "<if test='item.longitudeWgs84 != null'>, longitudeWgs84=${item.longitudeWgs84}</if>" +
             "<if test='item.latitudeWgs84 != null'>, latitudeWgs84=${item.latitudeWgs84}</if>" +
             "<if test='item.businessGroupId != null'>, businessGroupId=#{item.businessGroupId}</if>" +
+            "<if test='item.gpsTime != null'>, gpsTime=#{item.gpsTime}</if>" +
             "WHERE deviceId='${item.deviceId}' AND channelId='${item.channelId}'"+
             "</foreach>" +
             "</script>"})
@@ -281,10 +288,11 @@ public interface DeviceChannelMapper {
             "SET " +
             "latitude=${latitude}, " +
             "longitude=${longitude}, " +
-            "longitudeGcj02=${longitudeGcj02}," +
-            "latitudeGcj02=${latitudeGcj02}," +
-            "longitudeWgs84=${longitudeWgs84}," +
-            "latitudeWgs84=${latitudeWgs84} " +
+            "longitudeGcj02=${longitudeGcj02}, " +
+            "latitudeGcj02=${latitudeGcj02}, " +
+            "longitudeWgs84=${longitudeWgs84}, " +
+            "latitudeWgs84=${latitudeWgs84}, " +
+            "gpsTime='${gpsTime}' " +
             "WHERE deviceId=#{deviceId} " +
             " <if test='channelId != null' >  AND channelId=#{channelId}</if>" +
             " </script>"})
@@ -325,5 +333,16 @@ public interface DeviceChannelMapper {
     @Select("select * from device_channel where deviceId=#{deviceId} and SUBSTRING(channelId, 11, 3)=#{typeCode}")
     List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
 
+    @Select("select dc.id, dc.channelId, dc.deviceId, dc.name, dc.manufacture,dc.model,dc.owner, pc.civilCode,dc.block, " +
+            " dc.address, '0' as parental,'0' as channelType, pc.id as parentId, dc.safetyWay, dc.registerWay,dc.certNum, dc.certifiable,  " +
+            " dc.errCode,dc.endTime, dc.secrecy,   dc.ipAddress,  dc.port,  dc.PTZType,  dc.password, dc.status, " +
+            " dc.longitudeWgs84 as longitude, dc.latitudeWgs84 as latitude,  pc.businessGroupId " +
+            " from device_channel dc" +
+            " left join platform_gb_channel pgc on  dc.id = pgc.deviceChannelId" +
+            " left join platform_catalog pc on pgc.catalogId = pc.id and pgc.platformId = pc.platformId" +
+            " where pgc.platformId=#{serverGBId}")
+    List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
 
+    @Select("select * from device_channel where deviceId = #{deviceId}")
+    List<DeviceChannel> queryAllChannels(String deviceId);
 }

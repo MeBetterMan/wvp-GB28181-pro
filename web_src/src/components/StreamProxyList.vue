@@ -87,7 +87,7 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-switch-button" type="text" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-check" type="text" :loading="startBtnLaoding" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
+          <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
           <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
         </template>
@@ -132,7 +132,7 @@
 				count:15,
 				total:0,
 				getListLoading: false,
-				startBtnLaoding: false
+        startBtnLoading: false
 			};
 		},
 		computed: {
@@ -168,9 +168,14 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					that.total = res.data.total;
-					that.streamProxyList = res.data.list;
-					that.getListLoading = false;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            for (let i = 0; i < res.data.data.list.length; i++) {
+              res.data.data.list[i]["startBtnLoading"] = false;
+            }
+            that.streamProxyList = res.data.data.list;
+          }
+          that.getListLoading = false;
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
@@ -187,7 +192,7 @@
           url:`/api/onvif/search?timeout=3000`,
         }).then((res) =>{
           this.getListLoading = false;
-          if (res.data.code == 0 ){
+          if (res.data.code === 0 ){
             if (res.data.data.length > 0) {
               this.$refs.onvifEdit.openDialog(res.data.data, (url)=>{
                   if (url != null) {
@@ -215,7 +220,7 @@
 				this.getListLoading = true;
 				this.$axios({
 					method: 'get',
-					url:`/api/media/stream_info_by_app_and_stream`,
+					url:`/api/push/getPlayUrl`,
 					params: {
 						app: row.app,
 						stream: row.stream,
@@ -263,7 +268,7 @@
 			start: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.startBtnLaoding = true;
+        this.$set(row, 'startBtnLoading', true)
 				this.$axios({
 					method: 'get',
 					url:`/api/proxy/start`,
@@ -273,8 +278,8 @@
 					}
 				}).then(function (res) {
           that.getListLoading = false;
-          that.startBtnLaoding = false;
-				  if (res.data == "success"){
+          that.$set(row, 'startBtnLoading', false)
+				  if (res.data.code === 0){
             that.initData()
           }else {
             that.$message({
@@ -287,7 +292,7 @@
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
-					that.startBtnLaoding = false;
+          that.$set(row, 'startBtnLoading', false)
 				});
 			},
 			stop: function(row){

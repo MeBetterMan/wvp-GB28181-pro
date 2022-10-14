@@ -174,22 +174,23 @@ export default {
                     page: that.currentPage,
                     count: that.count,
                     query: that.searchSrt,
-                    pushing: that.pushing,
                     platformId: that.platformId,
                     catalogId: that.catalogId,
                     mediaServerId: that.mediaServerId
                 }
                 })
                 .then(function (res) {
-                    that.total = res.data.total;
-                    that.gbStreams = res.data.list;
-                    that.gbChoosechannel = {};
-                    // 防止出现表格错位
-                    that.$nextTick(() => {
+                    if (res.data.code === 0) {
+                      that.total = res.data.data.total;
+                      that.gbStreams = res.data.data.list;
+                      that.gbChoosechannel = {};
+                      // 防止出现表格错位
+                      that.$nextTick(() => {
                         that.$refs.gbStreamsTable.doLayout();
                         // 默认选中
-                         that.eventEnable = true;
-                    })
+                        that.eventEnable = true;
+                      })
+                    }
                 })
                 .catch(function (error) {
                     console.log(error);

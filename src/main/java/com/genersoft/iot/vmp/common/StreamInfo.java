@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.common;
 
-import com.alibaba.fastjson.JSONArray;
 
 public class StreamInfo {
 
@@ -9,6 +8,9 @@ public class StreamInfo {
     private String deviceID;
     private String channelId;
     private String flv;
+
+    private String ip;
+
     private String https_flv;
     private String ws_flv;
     private String wss_flv;
@@ -29,11 +31,15 @@ public class StreamInfo {
     private String rtsp;
     private String rtsps;
     private String rtc;
+
+    private String rtcs;
     private String mediaServerId;
     private Object tracks;
     private String startTime;
     private String endTime;
     private double progress;
+
+    private boolean pause;
 
     public static class TransactionInfo{
         public String callId;
@@ -291,5 +297,29 @@ public class StreamInfo {
 
     public void setProgress(double progress) {
         this.progress = progress;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public String getRtcs() {
+        return rtcs;
+    }
+
+    public void setRtcs(String rtcs) {
+        this.rtcs = rtcs;
+    }
+
+    public boolean isPause() {
+        return pause;
+    }
+
+    public void setPause(boolean pause) {
+        this.pause = pause;
     }
 }

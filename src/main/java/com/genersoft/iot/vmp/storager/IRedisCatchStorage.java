@@ -3,13 +3,12 @@ package com.genersoft.iot.vmp.storager;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
+import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -19,10 +18,9 @@ public interface IRedisCatchStorage {
     /**
      * 计数器。为cseq进行计数
      *
-     * @param method sip 方法
      * @return
      */
-    Long getCSEQ(String method);
+    Long getCSEQ();
 
     /**
      * 开始播放时将流存入
@@ -58,23 +56,21 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryPlayback(String deviceId, String channelID, String stream, String callId);
 
+    String queryPlaybackForKey(String deviceId, String channelId, String stream, String callId);
+
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
     ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);
 
     void delPlatformCatchInfo(String platformGbId);
 
-    void updatePlatformKeepalive(ParentPlatform parentPlatform);
-
     void delPlatformKeepalive(String platformGbId);
-
-    void updatePlatformRegister(ParentPlatform parentPlatform);
 
     void delPlatformRegister(String platformGbId);
 
-    void updatePlatformRegisterInfo(String callId, String platformGbId);
+    void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo);
 
-    String queryPlatformRegisterInfo(String callId);
+    PlatformRegisterInfo queryPlatformRegisterInfo(String callId);
 
     void delPlatformRegisterInfo(String callId);
 
@@ -213,4 +209,35 @@ public interface IRedisCatchStorage {
      */
     public boolean deviceIsOnline(String deviceId);
 
+    /**
+     * 存储推流的鉴权信息
+     * @param app 应用名
+     * @param stream 流
+     * @param streamAuthorityInfo 鉴权信息
+     */
+    void updateStreamAuthorityInfo(String app, String stream, StreamAuthorityInfo streamAuthorityInfo);
+
+    /**
+     * 移除推流的鉴权信息
+     * @param app 应用名
+     * @param streamId 流
+     */
+    void removeStreamAuthorityInfo(String app, String streamId);
+
+    /**
+     * 获取推流的鉴权信息
+     * @param app 应用名
+     * @param stream 流
+     * @return
+     */
+    StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream);
+
+    /**
+     * 发送redis消息 查询所有推流设备的状态
+     */
+    void sendStreamPushRequestedMsgForStatus();
+
+    List<SendRtpItem> querySendRTPServerByChnnelId(String channelId);
+
+    List<SendRtpItem> querySendRTPServerByStream(String stream);
 }
